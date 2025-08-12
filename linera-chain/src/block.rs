@@ -217,7 +217,7 @@ pub enum ConversionError {
 
 /// Block defines the atomic unit of growth of the Linera chain.
 ///
-/// As part of the block body, contains all the incoming messages
+/// As part of the block body, it contains all the incoming messages
 /// and operations to execute which define a state transition of the chain.
 /// Resulting messages produced by the operations are also included in the block body,
 /// together with oracle responses and events.
@@ -299,8 +299,8 @@ impl<'de> Deserialize<'de> for Block {
 }
 
 /// Succinct representation of a block.
-/// Contains all the metadata to follow the chain of blocks or verifying
-/// inclusion (event, message, oracle response, etc.) in the block's body.
+/// Contains all the metadata to follow the chain of blocks or to verify
+/// inclusion of items (events, messages, oracle responses, etc.) in the block's body.
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize, SimpleObject)]
 pub struct BlockHeader {
     /// The chain to which this block belongs.
@@ -315,9 +315,9 @@ pub struct BlockHeader {
     pub state_hash: CryptoHash,
     /// Certified hash of the previous block in the chain, if any.
     pub previous_block_hash: Option<CryptoHash>,
-    /// The user signing for the operations in the block and paying for their execution
+    /// The user signing for the operations in the block and paying the execution
     /// fees. If set, this must be the `owner` in the block proposal. `None` means that
-    /// the default account of the chain is used. This value is also used as recipient of
+    /// the default account of the chain is used. This value is also used as the recipient of
     /// potential refunds for the message grants created by the operations.
     pub authenticated_signer: Option<AccountOwner>,
 
@@ -418,10 +418,7 @@ impl Block {
         Self { header, body }
     }
 
-    /// Returns the bundles of messages sent via the given medium to the specified
-    /// recipient. Messages originating from different transactions of the original block
-    /// are kept in separate bundles. If the medium is a channel, does not verify that the
-    /// recipient is actually subscribed to that channel.
+    /// Returns the bundles of messages sent to the specified recipient. Messages originating from different transactions of the original block are kept in separate bundles.
     pub fn message_bundles_for(
         &self,
         recipient: ChainId,
@@ -455,7 +452,7 @@ impl Block {
     }
 
     /// Returns all the blob IDs required by this block.
-    /// Either as oracle responses or as published blobs.
+    /// Either as oracle responses, published blobs, or created blobs.
     pub fn required_blob_ids(&self) -> BTreeSet<BlobId> {
         let mut blob_ids = self.oracle_blob_ids();
         blob_ids.extend(self.published_blob_ids());
@@ -470,7 +467,7 @@ impl Block {
         blob_ids
     }
 
-    /// Returns whether this block requires the blob with the specified ID.
+    /// Returns whether this block requires or creates the blob with the specified ID.
     pub fn requires_or_creates_blob(&self, blob_id: &BlobId) -> bool {
         self.oracle_blob_ids().contains(blob_id)
             || self.published_blob_ids().contains(blob_id)
@@ -509,7 +506,7 @@ impl Block {
             .collect()
     }
 
-    /// Returns set of blob IDs that were a result of an oracle call.
+    /// Returns the set of blob IDs that were a result of an oracle call.
     pub fn oracle_blob_ids(&self) -> BTreeSet<BlobId> {
         let mut required_blob_ids = BTreeSet::new();
         for responses in &self.body.oracle_responses {
@@ -523,7 +520,7 @@ impl Block {
         required_blob_ids
     }
 
-    /// Returns reference to the outgoing messages in the block.
+    /// Returns a reference to the outgoing messages in the block.
     pub fn messages(&self) -> &Vec<Vec<OutgoingMessage>> {
         &self.body.messages
     }
